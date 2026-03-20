@@ -1,0 +1,4 @@
+interface:
+  display_name: "观远自定义图表"
+  short_description: "按观远 BI 自定义图表接口规则生成、修订并排查图表代码"
+  default_prompt: "Use $guandata-custom-chart to generate or fix a GuanData custom chart that follows the documented renderChart, data, clickFunc, config, and Lite-mode rules."
