@@ -2,6 +2,14 @@
 
 用于比较生产/测试两套 BI 环境中同一页面（或页面映射）下卡片数据差异。
 
+## 目录定位
+
+当前项目已独立放在仓库子目录：
+
+- 项目根目录：`/Users/guandata/Desktop/cursor_project/page_compare/bi-page-compare`
+- Web 入口：`/Users/guandata/Desktop/cursor_project/page_compare/bi-page-compare/web_app.py`
+- CLI 入口：`/Users/guandata/Desktop/cursor_project/page_compare/bi-page-compare/main.py`
+
 ## 功能
 
 - 登录两套环境，获取 token
