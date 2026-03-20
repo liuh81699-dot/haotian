@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+
+.venv/
+venv/
+
+config.toml
+app_data/
+output/
+web_output/
+
+effecttive/node_modules/
+effecttive/web_output/

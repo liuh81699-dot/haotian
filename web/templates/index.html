@@ -1,0 +1,1062 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BI Compare Console</title>
+  <style>
+    :root {
+      --paper: #fffdf8;
+      --ink: #1f2933;
+      --muted: #5f6c72;
+      --accent: #0f766e;
+      --accent-soft: #ccfbf1;
+      --danger: #b91c1c;
+      --line: #e7e0d2;
+      --gradient: radial-gradient(circle at 20% 15%, #f5d0a9 0%, transparent 38%), radial-gradient(circle at 85% 20%, #b3e6df 0%, transparent 34%), linear-gradient(180deg, #f8f5ef 0%, #f3efe7 100%);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "IBM Plex Sans", "Avenir Next", sans-serif;
+      color: var(--ink);
+      background: var(--gradient);
+      min-height: 100vh;
+    }
+
+    .shell {
+      width: min(1120px, 94vw);
+      margin: 32px auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 18px 48px rgba(41, 47, 54, 0.12);
+      overflow: hidden;
+      animation: rise 420ms ease-out;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    header {
+      padding: 26px 26px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, #fff7ed 0%, #f0fdfa 100%);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.42rem;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .required-hint {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #7f1d1d;
+    }
+
+    .req { color: #b91c1c; margin-left: 2px; }
+
+    .template-bar {
+      margin: 14px 24px 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: 180px minmax(220px, 1fr) auto auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .template-label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 20px 24px 0;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    input, select {
+      border: 1px solid #d9d1c2;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.92rem;
+      background: #fffdfa;
+      color: var(--ink);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+    }
+
+    input.invalid { border-color: #b91c1c; background: #fff1f2; }
+
+    .pairs {
+      padding: 16px 24px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      font-size: 0.9rem;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f9f7f2;
+      font-size: 0.76rem;
+      color: #4b5563;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .pair-row:last-child td { border-bottom: none; }
+
+    .actions {
+      padding: 18px 24px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 120ms ease, opacity 120ms ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .primary { background: var(--accent); color: #fff; }
+    .ghost { background: #eef2f3; color: #364152; }
+    .danger { background: #fee2e2; color: var(--danger); }
+    .add { background: var(--accent-soft); color: #0f766e; }
+
+    .status {
+      width: 100%;
+      margin-top: 4px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .status-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 0.78rem;
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .pill.running { background: #dbeafe; color: #1e3a8a; }
+    .pill.completed { background: #dcfce7; color: #166534; }
+    .pill.failed { background: #fee2e2; color: #991b1b; }
+    .pill.cancelled { background: #fef3c7; color: #92400e; }
+
+    .result-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 64px;
+      border-radius: 999px;
+      padding: 3px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .result-consistent { background: #dcfce7; color: #166534; }
+    .result-inconsistent { background: #fee2e2; color: #991b1b; }
+    .result-exception { background: #ffedd5; color: #9a3412; }
+    .result-pending { background: #e5e7eb; color: #374151; }
+
+    .bar {
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: #ece7db;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0f766e 0%, #14b8a6 100%);
+      transition: width 280ms ease;
+    }
+
+    .summary {
+      margin-top: 8px;
+      font-size: 0.88rem;
+      color: #334155;
+      line-height: 1.5;
+    }
+
+    .muted { color: var(--muted); }
+
+    @media (max-width: 980px) {
+      .template-bar { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .field-grid { grid-template-columns: 1fr; }
+      th:nth-child(1), td:nth-child(1) { width: 26%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <h1>BI 双环境页面卡片比对</h1>
+      <div class="subtitle">输入 prod/test 基础信息和页面对，按固定配置执行比较任务（支持终止、刷新和结果查看）。</div>
+      <div class="required-hint">标记 <span class="req">*</span> 的字段为必填。</div>
+    </header>
+
+    <section class="template-bar">
+      <div class="template-label">模板管理</div>
+      <input id="template_name" placeholder="模板名称（例如：日报环境A）" />
+      <button class="add" id="save_template_btn" type="button">保存模板</button>
+      <select id="template_select"></select>
+      <div style="display:flex;gap:8px;">
+        <button class="ghost" id="load_template_btn" type="button">加载模板</button>
+        <button class="danger" id="delete_template_btn" type="button">删除模板</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>生产环境 (prod)</h2>
+        <div class="field-grid">
+          <div class="field"><label>Base URL<span class="req">*</span></label><input id="prod_base_url" required placeholder="http://example.com" /></div>
+          <div class="field"><label>Domain<span class="req">*</span></label><input id="prod_domain" required placeholder="guanbi" /></div>
+          <div class="field"><label>Login ID<span class="req">*</span></label><input id="prod_login_id" required placeholder="user@company.com" /></div>
+          <div class="field"><label>Password<span class="req">*</span></label><input id="prod_password" required type="password" /></div>
+          <div class="field" style="grid-column: 1 / -1;"><label>Page Token<span class="req">*</span></label><input id="prod_page_token" required placeholder="应用 token" /></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>测试环境 (test)</h2>
+        <div class="field-grid">
+          <div class="field"><label>Base URL<span class="req">*</span></label><input id="test_base_url" required placeholder="http://example.com" /></div>
+          <div class="field"><label>Domain<span class="req">*</span></label><input id="test_domain" required placeholder="guanbi" /></div>
+          <div class="field"><label>Login ID<span class="req">*</span></label><input id="test_login_id" required placeholder="user@company.com" /></div>
+          <div class="field"><label>Password<span class="req">*</span></label><input id="test_password" required type="password" /></div>
+          <div class="field" style="grid-column: 1 / -1;"><label>Page Token<span class="req">*</span></label><input id="test_page_token" required placeholder="应用 token" /></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pairs">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <h2 style="margin:0;font-size:1rem;">页面对配置</h2>
+        <button class="add" id="add_pair_btn" type="button">+ 添加页面对</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>名称<span class="req">*</span></th>
+            <th>Prod Page ID<span class="req">*</span></th>
+            <th>Test Page ID<span class="req">*</span></th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="pairs_body"></tbody>
+      </table>
+    </section>
+
+    <section class="card" style="margin:16px 24px 0;">
+      <h2 style="margin-bottom:10px;">定时执行</h2>
+      <div class="field-grid">
+        <div class="field"><label>计划名称</label><input id="schedule_name" placeholder="例如：每日晨检（可留空自动生成）" /></div>
+        <div class="field"><label>使用模板</label><select id="schedule_template_select"></select></div>
+        <div class="field"><label>执行间隔(分钟)</label><input id="schedule_interval" type="number" min="1" placeholder="默认60" /></div>
+        <div class="field"><label>状态</label><select id="schedule_enabled"><option value="true">启用</option><option value="false">停用</option></select></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button class="add" id="save_schedule_btn" type="button">保存计划</button>
+        <button class="ghost" id="run_schedule_btn" type="button">立即执行一次</button>
+        <button class="danger" id="delete_schedule_btn" type="button">删除计划</button>
+        <button class="ghost" id="refresh_schedules_btn" type="button">刷新计划列表</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>名称</th>
+            <th>模板</th>
+            <th>间隔(分钟)</th>
+            <th>状态</th>
+            <th>下次执行</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="schedules_body"></tbody>
+      </table>
+    </section>
+
+    <section class="actions">
+      <button class="primary" id="start_btn" type="button">开始比较</button>
+      <button class="danger" id="stop_btn" type="button" disabled>终止比较</button>
+      <button class="ghost" id="refresh_btn" type="button" disabled>刷新进度</button>
+      <a id="result_link" href="#" target="_blank" style="text-decoration:none;">
+        <button class="ghost" id="result_btn" type="button" disabled>查看比较结果</button>
+      </a>
+      <span id="task_hint" class="muted"></span>
+
+      <div class="status">
+        <div class="status-top">
+          <span>任务ID: <strong id="task_id">-</strong></span>
+          <span>状态: <span id="task_status" class="pill">idle</span></span>
+          <span>阶段: <strong id="task_stage">-</strong></span>
+          <span id="task_msg" class="muted">尚未运行</span>
+        </div>
+        <div class="bar"><span id="progress_fill"></span></div>
+        <div id="progress_text" class="muted">0 / 0 cards</div>
+        <div id="summary" class="summary"></div>
+      </div>
+    </section>
+
+    <section class="card" style="margin:0 24px 24px;">
+      <h2 style="margin-bottom:10px;">历史任务结果</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="ghost" id="refresh_history_btn" type="button">刷新历史结果</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>任务ID</th>
+            <th>创建时间</th>
+            <th>状态</th>
+            <th>来源</th>
+            <th>结果</th>
+          </tr>
+        </thead>
+        <tbody id="history_body"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      currentTaskId: localStorage.getItem('bi_compare_task_id') || null,
+      poller: null,
+      editingScheduleId: null,
+    };
+
+    const ids = {
+      taskId: document.getElementById('task_id'),
+      taskStatus: document.getElementById('task_status'),
+      taskStage: document.getElementById('task_stage'),
+      taskMsg: document.getElementById('task_msg'),
+      progressFill: document.getElementById('progress_fill'),
+      progressText: document.getElementById('progress_text'),
+      summary: document.getElementById('summary'),
+      startBtn: document.getElementById('start_btn'),
+      stopBtn: document.getElementById('stop_btn'),
+      refreshBtn: document.getElementById('refresh_btn'),
+      resultBtn: document.getElementById('result_btn'),
+      resultLink: document.getElementById('result_link'),
+      taskHint: document.getElementById('task_hint'),
+      pairsBody: document.getElementById('pairs_body'),
+      templateName: document.getElementById('template_name'),
+      templateSelect: document.getElementById('template_select'),
+      scheduleTemplateSelect: document.getElementById('schedule_template_select'),
+      schedulesBody: document.getElementById('schedules_body'),
+      scheduleName: document.getElementById('schedule_name'),
+      scheduleInterval: document.getElementById('schedule_interval'),
+      scheduleEnabled: document.getElementById('schedule_enabled'),
+      historyBody: document.getElementById('history_body'),
+    };
+
+    async function httpJSON(url, options = {}) {
+      const resp = await fetch(url, options);
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || data.message || '请求失败');
+      }
+      return data;
+    }
+
+    function baseFieldIds() {
+      return [
+        'prod_base_url', 'prod_domain', 'prod_login_id', 'prod_password', 'prod_page_token',
+        'test_base_url', 'test_domain', 'test_login_id', 'test_password', 'test_page_token',
+      ];
+    }
+
+    function clearInvalidState() {
+      for (const id of baseFieldIds()) {
+        document.getElementById(id).classList.remove('invalid');
+      }
+      for (const input of ids.pairsBody.querySelectorAll('input')) {
+        input.classList.remove('invalid');
+      }
+    }
+
+    function addPairRow(values = {}) {
+      const tr = document.createElement('tr');
+      tr.className = 'pair-row';
+      tr.innerHTML = `
+        <td><input class="pair-name" required placeholder="例如: 销售页" value="${values.name || ''}" /></td>
+        <td><input class="pair-prod" required placeholder="prod page id" value="${values.prod_page_id || ''}" /></td>
+        <td><input class="pair-test" required placeholder="test page id" value="${values.test_page_id || ''}" /></td>
+        <td><button class="ghost pair-remove" type="button">删除</button></td>
+      `;
+      tr.querySelector('.pair-remove').addEventListener('click', () => tr.remove());
+      ids.pairsBody.appendChild(tr);
+    }
+
+    function collectPairs() {
+      return [...ids.pairsBody.querySelectorAll('.pair-row')].map((row) => ({
+        name: row.querySelector('.pair-name').value.trim(),
+        prod_page_id: row.querySelector('.pair-prod').value.trim(),
+        test_page_id: row.querySelector('.pair-test').value.trim(),
+      }));
+    }
+
+    function collectFormData() {
+      return {
+        envs: {
+          prod: {
+            base_url: document.getElementById('prod_base_url').value.trim(),
+            domain: document.getElementById('prod_domain').value.trim(),
+            login_id: document.getElementById('prod_login_id').value.trim(),
+            password: document.getElementById('prod_password').value,
+            page_token: document.getElementById('prod_page_token').value.trim(),
+          },
+          test: {
+            base_url: document.getElementById('test_base_url').value.trim(),
+            domain: document.getElementById('test_domain').value.trim(),
+            login_id: document.getElementById('test_login_id').value.trim(),
+            password: document.getElementById('test_password').value,
+            page_token: document.getElementById('test_page_token').value.trim(),
+          },
+        },
+        page_pairs: collectPairs(),
+      };
+    }
+
+    function setFormData(data) {
+      const prod = data.envs?.prod || {};
+      const test = data.envs?.test || {};
+      document.getElementById('prod_base_url').value = prod.base_url || '';
+      document.getElementById('prod_domain').value = prod.domain || '';
+      document.getElementById('prod_login_id').value = prod.login_id || '';
+      document.getElementById('prod_password').value = prod.password || '';
+      document.getElementById('prod_page_token').value = prod.page_token || '';
+      document.getElementById('test_base_url').value = test.base_url || '';
+      document.getElementById('test_domain').value = test.domain || '';
+      document.getElementById('test_login_id').value = test.login_id || '';
+      document.getElementById('test_password').value = test.password || '';
+      document.getElementById('test_page_token').value = test.page_token || '';
+
+      ids.pairsBody.innerHTML = '';
+      const pairs = Array.isArray(data.page_pairs) ? data.page_pairs : [];
+      if (!pairs.length) {
+        addPairRow({ name: '页面对1' });
+      } else {
+        for (const pair of pairs) addPairRow(pair);
+      }
+    }
+
+    function validateFormData(formData) {
+      clearInvalidState();
+      const missing = [];
+
+      const checks = [
+        ['prod_base_url', '生产环境 Base URL', formData.envs.prod.base_url],
+        ['prod_domain', '生产环境 Domain', formData.envs.prod.domain],
+        ['prod_login_id', '生产环境 Login ID', formData.envs.prod.login_id],
+        ['prod_password', '生产环境 Password', formData.envs.prod.password],
+        ['prod_page_token', '生产环境 Page Token', formData.envs.prod.page_token],
+        ['test_base_url', '测试环境 Base URL', formData.envs.test.base_url],
+        ['test_domain', '测试环境 Domain', formData.envs.test.domain],
+        ['test_login_id', '测试环境 Login ID', formData.envs.test.login_id],
+        ['test_password', '测试环境 Password', formData.envs.test.password],
+        ['test_page_token', '测试环境 Page Token', formData.envs.test.page_token],
+      ];
+
+      for (const [inputId, label, value] of checks) {
+        if (!value) {
+          missing.push(label);
+          document.getElementById(inputId).classList.add('invalid');
+        }
+      }
+
+      if (!formData.page_pairs.length) {
+        missing.push('至少一组页面对');
+      }
+
+      [...ids.pairsBody.querySelectorAll('.pair-row')].forEach((row, idx) => {
+        const nameEl = row.querySelector('.pair-name');
+        const prodEl = row.querySelector('.pair-prod');
+        const testEl = row.querySelector('.pair-test');
+        if (!nameEl.value.trim()) {
+          missing.push(`页面对${idx + 1} 名称`);
+          nameEl.classList.add('invalid');
+        }
+        if (!prodEl.value.trim()) {
+          missing.push(`页面对${idx + 1} Prod Page ID`);
+          prodEl.classList.add('invalid');
+        }
+        if (!testEl.value.trim()) {
+          missing.push(`页面对${idx + 1} Test Page ID`);
+          testEl.classList.add('invalid');
+        }
+      });
+
+      return missing;
+    }
+
+    async function refreshTemplates(selectName = '') {
+      const data = await httpJSON('/api/templates');
+      const names = (data.templates || []).map((t) => t.name);
+
+      for (const selectEl of [ids.templateSelect, ids.scheduleTemplateSelect]) {
+        selectEl.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = names.length ? '选择模板...' : '暂无模板';
+        selectEl.appendChild(defaultOption);
+        for (const name of names) {
+          const option = document.createElement('option');
+          option.value = name;
+          option.textContent = name;
+          selectEl.appendChild(option);
+        }
+      }
+
+      const preferred = selectName || localStorage.getItem('bi_compare_last_template') || '';
+      if (preferred && names.includes(preferred)) {
+        ids.templateSelect.value = preferred;
+        ids.scheduleTemplateSelect.value = preferred;
+      }
+    }
+
+    async function saveTemplate() {
+      const name = ids.templateName.value.trim();
+      if (!name) {
+        ids.summary.textContent = '请先输入模板名称再保存';
+        return;
+      }
+
+      const formData = collectFormData();
+      const missing = validateFormData(formData);
+      if (missing.length) {
+        ids.summary.textContent = `模板保存失败，请补全必填项: ${missing.slice(0, 6).join('、')}`;
+        return;
+      }
+
+      await httpJSON('/api/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, payload: formData }),
+      });
+
+      await refreshTemplates(name);
+      ids.summary.textContent = `模板已保存：${name}`;
+      localStorage.setItem('bi_compare_last_template', name);
+    }
+
+    async function loadTemplate() {
+      const name = ids.templateSelect.value;
+      if (!name) {
+        ids.summary.textContent = '请选择要加载的模板';
+        return;
+      }
+
+      const data = await httpJSON(`/api/templates/${encodeURIComponent(name)}`);
+      setFormData(data.template.payload || {});
+      ids.templateName.value = name;
+      ids.scheduleTemplateSelect.value = name;
+      localStorage.setItem('bi_compare_last_template', name);
+      ids.summary.textContent = `模板已加载：${name}`;
+    }
+
+    async function deleteTemplate() {
+      const name = ids.templateSelect.value;
+      if (!name) {
+        ids.summary.textContent = '请选择要删除的模板';
+        return;
+      }
+
+      await httpJSON(`/api/templates/${encodeURIComponent(name)}`, { method: 'DELETE' });
+      if (localStorage.getItem('bi_compare_last_template') === name) {
+        localStorage.removeItem('bi_compare_last_template');
+      }
+      await refreshTemplates('');
+      await refreshSchedules();
+      ids.summary.textContent = `模板已删除：${name}`;
+    }
+
+    function updateStatus(task) {
+      const progress = task.progress || {};
+      const processed = Number(progress.processed_cards || 0);
+      const total = Number(progress.total_cards || 0);
+      const percent = total > 0 ? Math.min(100, Math.round(processed * 100 / total)) : (task.status === 'completed' ? 100 : 0);
+
+      ids.taskId.textContent = task.id || '-';
+      ids.taskStatus.textContent = task.status;
+      ids.taskStatus.className = `pill ${task.status}`;
+      ids.taskStage.textContent = progress.stage || '-';
+      ids.taskMsg.textContent = progress.message || '-';
+      ids.progressFill.style.width = `${percent}%`;
+      ids.progressText.textContent = `${processed} / ${total} cards (${percent}%)`;
+
+      ids.refreshBtn.disabled = !task.id;
+      ids.stopBtn.disabled = !(task.status === 'queued' || task.status === 'running');
+      ids.startBtn.disabled = (task.status === 'queued' || task.status === 'running');
+
+      if (task.status === 'completed' && task.report_html_url) {
+        ids.resultBtn.disabled = false;
+        ids.resultLink.href = task.report_html_url;
+      } else {
+        ids.resultBtn.disabled = true;
+        ids.resultLink.href = '#';
+      }
+
+      const summary = task.summary || null;
+      if (summary) {
+        ids.summary.textContent = `cards_compared=${summary.cards_compared || 0}, equal=${summary.cards_equal || 0}, different=${summary.cards_different || 0}, errors=${summary.cards_error || 0}, prod_only=${summary.cards_prod_only || 0}, test_only=${summary.cards_test_only || 0}`;
+      } else if (task.error) {
+        ids.summary.textContent = `错误: ${task.error}`;
+      }
+
+      ids.taskHint.textContent = task.finished_at ? `结束时间: ${task.finished_at}` : (task.started_at ? `开始时间: ${task.started_at}` : '');
+    }
+
+    async function fetchTask(taskId) {
+      const data = await httpJSON(`/api/tasks/${taskId}`);
+      return data.task;
+    }
+
+    async function refreshCurrentTask() {
+      if (!state.currentTaskId) return;
+      try {
+        const task = await fetchTask(state.currentTaskId);
+        updateStatus(task);
+        if (task.status !== 'running' && task.status !== 'queued') {
+          stopPolling();
+          await refreshHistory();
+        }
+      } catch (err) {
+        ids.summary.textContent = err.message;
+      }
+    }
+
+    function startPolling() {
+      stopPolling();
+      state.poller = setInterval(refreshCurrentTask, 2000);
+    }
+
+    function stopPolling() {
+      if (state.poller) {
+        clearInterval(state.poller);
+        state.poller = null;
+      }
+    }
+
+    async function startTask() {
+      const formData = collectFormData();
+      const missing = validateFormData(formData);
+      if (missing.length) {
+        ids.summary.textContent = `请补全必填项: ${missing.slice(0, 8).join('、')}${missing.length > 8 ? ' ...' : ''}`;
+        return;
+      }
+
+      ids.startBtn.disabled = true;
+      ids.summary.textContent = '任务提交中...';
+
+      try {
+        const data = await httpJSON('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+
+        state.currentTaskId = data.task_id;
+        localStorage.setItem('bi_compare_task_id', state.currentTaskId);
+        updateStatus(data.task);
+        startPolling();
+        refreshCurrentTask();
+        await refreshHistory();
+      } catch (err) {
+        ids.summary.textContent = err.message;
+        ids.startBtn.disabled = false;
+      }
+    }
+
+    async function stopTask() {
+      if (!state.currentTaskId) return;
+      try {
+        const data = await httpJSON(`/api/tasks/${state.currentTaskId}/stop`, { method: 'POST' });
+        ids.summary.textContent = data.message;
+        refreshCurrentTask();
+      } catch (err) {
+        ids.summary.textContent = err.message;
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function resolveHistoryResult(task) {
+      if (task.status === 'failed' || task.status === 'cancelled') {
+        return { label: '异常', cls: 'result-exception' };
+      }
+      if (task.status !== 'completed') {
+        return { label: '进行中', cls: 'result-pending' };
+      }
+
+      const summary = task.summary || {};
+      const status = summary.result_status || '';
+      if (status === 'exception') {
+        return { label: '异常', cls: 'result-exception' };
+      }
+      if (status === 'inconsistent') {
+        return { label: '不一致', cls: 'result-inconsistent' };
+      }
+      if (status === 'consistent') {
+        return { label: '一致', cls: 'result-consistent' };
+      }
+
+      const cardsError = Number(summary.cards_error || 0);
+      const pageErrors = Number(summary.page_errors || 0);
+      const cardsDifferent = Number(summary.cards_different || 0);
+      const cardsProdOnly = Number(summary.cards_prod_only || 0);
+      const cardsTestOnly = Number(summary.cards_test_only || 0);
+      if (cardsError > 0 || pageErrors > 0) {
+        return { label: '异常', cls: 'result-exception' };
+      }
+      if (cardsDifferent > 0 || cardsProdOnly > 0 || cardsTestOnly > 0) {
+        return { label: '不一致', cls: 'result-inconsistent' };
+      }
+      return { label: '一致', cls: 'result-consistent' };
+    }
+
+    function renderResultCell(task) {
+      const result = resolveHistoryResult(task);
+      const badge = `<span class="result-pill ${result.cls}">${result.label}</span>`;
+      const report = task.report_html_url
+        ? `<div style="margin-top:4px;"><a href="${task.report_html_url}" target="_blank">查看报告</a></div>`
+        : '';
+      return `${badge}${report}`;
+    }
+
+    async function refreshHistory() {
+      const data = await httpJSON('/api/tasks?limit=100');
+      const tasks = data.tasks || [];
+      ids.historyBody.innerHTML = '';
+
+      if (!tasks.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="5" class="muted">暂无历史任务</td>';
+        ids.historyBody.appendChild(tr);
+        return;
+      }
+
+      for (const task of tasks) {
+        const tr = document.createElement('tr');
+        const source = task.schedule_id ? `定时(${task.schedule_id})` : '手动';
+        const resultCell = renderResultCell(task);
+
+        tr.innerHTML = `
+          <td><a href="#" class="task-link" data-task-id="${escapeHtml(task.id)}">${escapeHtml(task.id)}</a></td>
+          <td>${escapeHtml(task.created_at || '')}</td>
+          <td>${escapeHtml(task.status || '')}</td>
+          <td>${escapeHtml(source)}</td>
+          <td>${resultCell}</td>
+        `;
+        tr.querySelector('.task-link').addEventListener('click', async (e) => {
+          e.preventDefault();
+          const taskId = e.currentTarget.getAttribute('data-task-id');
+          if (!taskId) return;
+          state.currentTaskId = taskId;
+          localStorage.setItem('bi_compare_task_id', taskId);
+          await refreshCurrentTask();
+        });
+
+        ids.historyBody.appendChild(tr);
+      }
+    }
+
+    function renderSchedules(schedules) {
+      ids.schedulesBody.innerHTML = '';
+      if (!schedules.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="6" class="muted">暂无定时计划</td>';
+        ids.schedulesBody.appendChild(tr);
+        return;
+      }
+
+      for (const s of schedules) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(s.name || '')}</td>
+          <td>${escapeHtml(s.template_name || '')}</td>
+          <td>${escapeHtml(s.interval_minutes || '')}</td>
+          <td>${s.enabled ? '启用' : '停用'}</td>
+          <td>${escapeHtml(s.next_run_at || '-')}</td>
+          <td>
+            <button class="ghost sch-edit" type="button">编辑</button>
+            <button class="ghost sch-toggle" type="button">${s.enabled ? '停用' : '启用'}</button>
+          </td>
+        `;
+
+        tr.querySelector('.sch-edit').addEventListener('click', () => {
+          state.editingScheduleId = s.id;
+          ids.scheduleName.value = s.name || '';
+          ids.scheduleTemplateSelect.value = s.template_name || '';
+          ids.scheduleInterval.value = String(s.interval_minutes || 60);
+          ids.scheduleEnabled.value = s.enabled ? 'true' : 'false';
+          ids.summary.textContent = `正在编辑计划：${s.name}`;
+        });
+
+        tr.querySelector('.sch-toggle').addEventListener('click', async () => {
+          try {
+            await httpJSON(`/api/schedules/${encodeURIComponent(s.id)}/toggle`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ enabled: !s.enabled }),
+            });
+            await refreshSchedules();
+          } catch (err) {
+            ids.summary.textContent = err.message;
+          }
+        });
+
+        ids.schedulesBody.appendChild(tr);
+      }
+    }
+
+    async function refreshSchedules() {
+      const data = await httpJSON('/api/schedules');
+      renderSchedules(data.schedules || []);
+    }
+
+    async function saveSchedule() {
+      let name = ids.scheduleName.value.trim();
+      let templateName = ids.scheduleTemplateSelect.value;
+      const intervalText = ids.scheduleInterval.value.trim();
+      const enabled = ids.scheduleEnabled.value === 'true';
+
+      if (!name && !templateName && !intervalText) {
+        ids.summary.textContent = '未填写定时任务信息，已跳过保存';
+        return;
+      }
+
+      let interval = Number(intervalText);
+      if (!Number.isInteger(interval) || interval <= 0) {
+        interval = 60;
+      }
+      if (!name) {
+        name = `schedule_${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12)}`;
+      }
+      if (!templateName) {
+        templateName = ids.templateSelect.value;
+      }
+
+      const payload = {
+        id: state.editingScheduleId || undefined,
+        name,
+        template_name: templateName,
+        interval_minutes: interval,
+        enabled,
+      };
+
+      const data = await httpJSON('/api/schedules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (data.skipped) {
+        ids.summary.textContent = data.message || '未保存定时任务';
+        return;
+      }
+
+      state.editingScheduleId = data.schedule.id;
+      ids.summary.textContent = `计划已保存：${data.schedule.name}`;
+      await refreshSchedules();
+    }
+
+    async function deleteSchedule() {
+      if (!state.editingScheduleId) {
+        ids.summary.textContent = '请先点击计划“编辑”后再删除';
+        return;
+      }
+
+      await httpJSON(`/api/schedules/${encodeURIComponent(state.editingScheduleId)}`, { method: 'DELETE' });
+      ids.summary.textContent = '计划已删除';
+      state.editingScheduleId = null;
+      ids.scheduleName.value = '';
+      ids.scheduleInterval.value = '';
+      ids.scheduleEnabled.value = 'true';
+      await refreshSchedules();
+    }
+
+    async function runScheduleNow() {
+      if (!state.editingScheduleId) {
+        ids.summary.textContent = '请先点击计划“编辑”后再手动触发';
+        return;
+      }
+
+      const data = await httpJSON(`/api/schedules/${encodeURIComponent(state.editingScheduleId)}/run-now`, {
+        method: 'POST',
+      });
+
+      state.currentTaskId = data.task.id;
+      localStorage.setItem('bi_compare_task_id', state.currentTaskId);
+      updateStatus(data.task);
+      startPolling();
+      await refreshHistory();
+      ids.summary.textContent = '已触发计划立即执行';
+    }
+
+    async function restoreLatestTask() {
+      if (state.currentTaskId) {
+        try {
+          await refreshCurrentTask();
+          const status = ids.taskStatus.textContent;
+          if (status === 'running' || status === 'queued') startPolling();
+          return;
+        } catch (_) {
+          // ignore and fall through
+        }
+      }
+
+      const data = await httpJSON('/api/tasks?limit=1');
+      const latest = (data.tasks || [])[0];
+      if (!latest) return;
+
+      state.currentTaskId = latest.id;
+      localStorage.setItem('bi_compare_task_id', state.currentTaskId);
+      updateStatus(latest);
+      if (latest.status === 'running' || latest.status === 'queued') {
+        startPolling();
+        refreshCurrentTask();
+      }
+    }
+
+    async function initializeForm() {
+      addPairRow({ name: '页面对1' });
+      await refreshTemplates();
+      await refreshSchedules();
+      await refreshHistory();
+
+      const last = localStorage.getItem('bi_compare_last_template');
+      if (last) {
+        ids.templateSelect.value = last;
+        ids.scheduleTemplateSelect.value = last;
+      }
+    }
+
+    document.getElementById('add_pair_btn').addEventListener('click', () => addPairRow());
+    document.getElementById('save_template_btn').addEventListener('click', () => saveTemplate().catch((e) => { ids.summary.textContent = e.message; }));
+    document.getElementById('load_template_btn').addEventListener('click', () => loadTemplate().catch((e) => { ids.summary.textContent = e.message; }));
+    document.getElementById('delete_template_btn').addEventListener('click', () => deleteTemplate().catch((e) => { ids.summary.textContent = e.message; }));
+
+    ids.templateSelect.addEventListener('change', () => {
+      const name = ids.templateSelect.value;
+      if (name) {
+        ids.templateName.value = name;
+        ids.scheduleTemplateSelect.value = name;
+        localStorage.setItem('bi_compare_last_template', name);
+      }
+    });
+
+    document.getElementById('save_schedule_btn').addEventListener('click', () => saveSchedule().catch((e) => { ids.summary.textContent = e.message; }));
+    document.getElementById('run_schedule_btn').addEventListener('click', () => runScheduleNow().catch((e) => { ids.summary.textContent = e.message; }));
+    document.getElementById('delete_schedule_btn').addEventListener('click', () => deleteSchedule().catch((e) => { ids.summary.textContent = e.message; }));
+    document.getElementById('refresh_schedules_btn').addEventListener('click', () => refreshSchedules().catch((e) => { ids.summary.textContent = e.message; }));
+
+    ids.startBtn.addEventListener('click', startTask);
+    ids.stopBtn.addEventListener('click', stopTask);
+    ids.refreshBtn.addEventListener('click', refreshCurrentTask);
+    document.getElementById('refresh_history_btn').addEventListener('click', () => refreshHistory().catch((e) => { ids.summary.textContent = e.message; }));
+
+    initializeForm()
+      .then(restoreLatestTask)
+      .catch((e) => { ids.summary.textContent = e.message; });
+  </script>
+</body>
+</html>

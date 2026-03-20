@@ -1,0 +1,51 @@
+[settings]
+# id: 两边卡片ID一致时使用; name: 按卡片名称匹配
+match_cards_by = "name"
+# GRAPH 或 GRID
+request_view = "GRID"
+request_offset = 0
+request_limit = 20000
+# chartMain: 只比较主要数据; full_response: 比较整个 response
+compare_scope = "chartMain"
+# 忽略比对路径，支持通配符（fnmatch）
+ignore_paths = [
+  "hitCache",
+  "meta.axes.*",
+  "extra.*",
+]
+# 默认忽略非数据卡片类型
+ignore_card_types = ["TEXT", "IFRAME", "PICTURE", "LAYOUT", "SELECTOR", "PARAMETER"]
+sort_arrays_before_compare = false
+numeric_tolerance = 0.0
+max_diffs_per_card = 200
+timeout_seconds = 30
+
+# 如果接口调用需要固定筛选，可在此配置
+request_filters = []
+request_dynamic_params = []
+
+[envs.prod]
+base_url = "https://your-prod-host"
+domain = "your-domain"
+login_id = "your_login"
+password = "your_password"
+# 可选：如果 /public-api/page 需要应用级 token，请填写
+# page_token = "your_app_token"
+
+[envs.test]
+base_url = "https://your-test-host"
+domain = "your-domain"
+login_id = "your_login"
+password = "your_password"
+# 可选：如果 /public-api/page 需要应用级 token，请填写
+# page_token = "your_app_token"
+
+[[page_pairs]]
+name = "销售分析页"
+prod_page_id = "prod_page_id_xxx"
+test_page_id = "test_page_id_xxx"
+
+# 当卡片名称不一致或有重复时，可显式指定映射（可选）
+[[page_pairs.card_mappings]]
+prod_card_id = "prod_card_id_1"
+test_card_id = "test_card_id_1"

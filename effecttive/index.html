@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Steel Falcon - Run & Gun</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="stage-wrap" aria-label="game stage">
+        <canvas id="game-canvas" width="960" height="540"></canvas>
+        <div class="menu-panel" id="menu-panel">
+          <h1>STEEL FALCON</h1>
+          <p>横版突击射击</p>
+          <button id="start-btn" type="button">开始任务</button>
+          <ul>
+            <li>移动: ←/→ 或 A/D</li>
+            <li>跳跃: ↑ 或 W</li>
+            <li>射击: Space 或 J</li>
+            <li>暂停: P 或 B | 全屏: F</li>
+            <li>重开: R（或结束后 Enter）</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+    <script src="./game.js"></script>
+  </body>
+</html>

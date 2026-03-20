@@ -1,0 +1,109 @@
+:root {
+  --bg-a: #09162a;
+  --bg-b: #11345a;
+  --panel: rgba(3, 9, 17, 0.82);
+  --line: #78d4ff;
+  --text: #eaf4ff;
+  --accent: #ffcc48;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(circle at 18% 15%, #1f3d67 0%, rgba(31, 61, 103, 0) 35%),
+    radial-gradient(circle at 82% 78%, #194156 0%, rgba(25, 65, 86, 0) 42%),
+    linear-gradient(135deg, var(--bg-a), var(--bg-b));
+  color: var(--text);
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+.app-shell {
+  width: 100%;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.stage-wrap {
+  position: relative;
+  width: min(96vw, 1200px);
+  display: grid;
+  place-items: center;
+}
+
+#game-canvas {
+  width: 100%;
+  max-width: 1200px;
+  aspect-ratio: 16 / 9;
+  border: 2px solid rgba(120, 212, 255, 0.65);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  image-rendering: pixelated;
+  display: block;
+}
+
+.menu-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.6));
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.menu-panel h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 52px);
+  letter-spacing: 2px;
+}
+
+.menu-panel p {
+  margin: 0;
+  color: #9be4ff;
+}
+
+.menu-panel ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  text-align: center;
+  color: #d9f4ff;
+  line-height: 1.5;
+  font-size: clamp(13px, 1.5vw, 18px);
+}
+
+#start-btn {
+  pointer-events: auto;
+  border: 1px solid #f7d167;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f9dd73, #ffbc34);
+  color: #1f1400;
+  padding: 10px 22px;
+  font-size: clamp(14px, 2vw, 20px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+#start-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+#start-btn:active {
+  transform: translateY(1px);
+}
